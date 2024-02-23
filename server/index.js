@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import multer from "multer";
 import "dotenv/config";
 import authRoutes from "./routes/authRoutes.js";
-// import userRoutes from "./routes/userRoutes";
+import userRoutes from "./routes/userRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 
 const app = express();
@@ -31,7 +31,7 @@ app.post('/api/upload', upload.single('file'), function (req, res) {
 })
 
 app.use("/api/auth", authRoutes);
-// app.use("/api/user",userRoutes)
+app.use("/api/user",userRoutes)
 app.use("/api/post", postRoutes);
 
 app.listen(5000, () => {
