@@ -1,56 +1,69 @@
-import React from "react";
 import Edit from "../img/edit.png";
 import Delete from "../img/delete.png";
-import { Link } from "react-router-dom";
-import Menu from "../components/Manu"
+import React, { useContext, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
+import moment from "moment";
+import Menu from "../components/Manu";
+import { AuthContext } from "../context/authContext";
 
 const Post = () => {
+  const [post, setPost] = useState([]);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const postId = location.pathname.split("/")[2];
+  const { currentUser } = useContext(AuthContext);
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const res = await axios.get(`/post/${postId}`);
+        setPost(res.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchPost();
+  }, [postId]);
+
+  const handleDelete = async () => {
+    try {
+      await axios.delete(`/post/${postId}`);
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getText = (html) => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    return doc.body.textContent;
+  };
+
   return (
     <div className="single">
       <div className="content">
-        <img
-          src="https://images.pexels.com/photos/7008010/pexels-photo-7008010.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
-          alt=""
-        />
+        <img src={`../upload/${post?.img}`} alt="" />
         <div className="user">
-          <img
-            src="https://media.licdn.com/dms/image/D4D35AQH-T2zsaN0mNQ/profile-framedphoto-shrink_200_200/0/1706704277316?e=1709146800&v=beta&t=puz9CPVu-LfCJHf9S9EnnTWT61zyvAa0VSOpFW3goxU"
-            alt=""
-          />
+          <img src={post?.userImg} alt="" />
           <div className="info">
-            <span>elsayed</span>
-            <p>Posted 'moment(post.date).fromNow()'</p>
+            <span>{post?.username}</span>
+            <p>Posted {moment(post.date).fromNow()}</p>
           </div>
-          <div className="edit">
-            <Link to={`/write?edit=2`}>
-              <img src={Edit} alt="" />
-            </Link>
-            <img src={Delete} alt="" />
-          </div>
+          {currentUser?.username === post?.username && (
+            <div className="edit">
+              <Link to={`/write?edit=2`} state={post}>
+                <img src={Edit} alt="" />
+              </Link>
+              <img onClick={handleDelete} src={Delete} alt="" />
+            </div>
+          )}
         </div>
-        <h1>"post.title"</h1>
-        <p
-        // dangerouslySetInnerHTML={{
-        //   __html: DOMPurify.sanitize(post.desc),
-        // }}
-        >
-          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Iste quasi
-          similique eaque expedita in vel quis corrupti, dolores nostrum officia
-          ad doloremque nesciunt consequuntur perferendis, distinctio ipsum
-          ducimus impedit amet. Lorem ipsum dolor sit amet consectetur,
-          adipisicing elit. Iste quasi similique eaque expedita in vel quis
-          corrupti, dolores nostrum officia ad doloremque nesciunt consequuntur
-          perferendis, distinctio ipsum ducimus impedit amet. Lorem ipsum dolor
-          sit amet consectetur, adipisicing elit. Iste quasi similique eaque
-          expedita in vel quis corrupti, dolores nostrum officia ad doloremque
-          nesciunt consequuntur perferendis, distinctio ipsum ducimus impedit
-          amet. Lorem ipsum dolor sit amet consectetur, adipisicing elit. Iste
-          quasi similique eaque expedita in vel quis corrupti, dolores nostrum
-          officia ad doloremque nesciunt consequuntur perferendis, distinctio
-          ipsum ducimus impedit amet.
-        </p>
+        <h1>{post.title}</h1>
+        <p>{getText(post.desc)}</p>
       </div>
-      <Menu  />
+      <Menu cat={post.cat} />
     </div>
   );
 };
